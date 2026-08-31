@@ -21,7 +21,7 @@ Otherwise use `npx`. In sandboxed agent shells, unset inherited local proxy vari
 env -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY \
   -u http_proxy -u https_proxy -u all_proxy \
   npx -y --registry=https://registry.npmjs.org/ \
-  @dej4vu/websearch-cli@0.3.0 fetch https://example.com --json
+  @dej4vu/websearch-cli@0.3.1 fetch https://example.com --json
 ```
 
 If the user already installed it globally, the shorter form is equivalent:
@@ -51,7 +51,7 @@ The npx fallback prefix is:
 ```sh
 env -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY \
   -u http_proxy -u https_proxy -u all_proxy \
-  npx -y --registry=https://registry.npmjs.org/ @dej4vu/websearch-cli@0.3.0
+  npx -y --registry=https://registry.npmjs.org/ @dej4vu/websearch-cli@0.3.1
 ```
 
 For model releases, incidents, prices, product changes, or any query where stale pages are misleading, rely on default `auto` ordering or be explicit:
