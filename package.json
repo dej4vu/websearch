@@ -1,6 +1,6 @@
 {
   "name": "@dej4vu/websearch-cli",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Agent web tools: fetch pages and search Bing CN.",
   "type": "module",
   "bin": {
