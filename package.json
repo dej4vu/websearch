@@ -1,0 +1,57 @@
+{
+  "name": "@dej4vu/websearch-cli",
+  "version": "0.3.0",
+  "description": "Agent web tools: fetch pages and search Bing CN.",
+  "type": "module",
+  "bin": {
+    "websearch": "bin/websearch.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dej4vu/websearch.git"
+  },
+  "homepage": "https://github.com/dej4vu/websearch#readme",
+  "bugs": {
+    "url": "https://github.com/dej4vu/websearch/issues"
+  },
+  "sideEffects": false,
+  "files": [
+    "bin",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test",
+    "test:sites": "node ./scripts/run-site-matrix.mjs",
+    "prepublishOnly": "npm test"
+  },
+  "keywords": [
+    "cli",
+    "agent",
+    "codex",
+    "claude",
+    "fetch",
+    "bing",
+    "search",
+    "markdown",
+    "web"
+  ],
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "dependencies": {
+    "@mozilla/readability": "^0.6.0",
+    "cheerio": "^1.2.0",
+    "commander": "^15.0.0",
+    "jsdom": "^29.1.1",
+    "robots-parser": "^3.0.1",
+    "turndown": "^7.2.4",
+    "undici": "^8.10.0"
+  }
+}
