@@ -7,7 +7,10 @@ Agent-oriented web tools for Codex, Claude Code, and other CLI-capable assistant
 No global installation is required:
 
 ```sh
-npx -y @dej4vu/websearch-cli@latest fetch https://example.com --json
+env -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY \
+  -u http_proxy -u https_proxy -u all_proxy \
+  npx -y --registry=https://registry.npmjs.org/ \
+  @dej4vu/websearch-cli@latest fetch https://example.com --json
 ```
 
 For automation, pin the version:
@@ -59,6 +62,25 @@ The first engine sends browser-like HTTP headers to `https://cn.bing.com/search`
 ```sh
 npx -y @dej4vu/websearch-cli@latest search "GLM 最新模型" --count 15 --json
 ```
+
+### npm registry / proxy troubleshooting
+
+`npx` inherits shell proxy variables and your npm registry setting. In a sandboxed agent shell, a local proxy such as `127.0.0.1:7890` may be blocked with:
+
+```text
+EPERM ... connect 127.0.0.1:7890
+```
+
+Run `npx` without inherited proxy variables and use the official registry:
+
+```sh
+env -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY \
+  -u http_proxy -u https_proxy -u all_proxy \
+  npx -y --registry=https://registry.npmjs.org/ \
+  @dej4vu/websearch-cli@0.3.0 search "GLM 最新模型" --json
+```
+
+The package is available on both npmjs.com and npmmirror.com; the error is caused by the blocked proxy connection, not a missing release.
 
 Dates are parsed from Bing's `.news_dt`, snippet, title, and URL when possible. When no trustworthy date exists, `dateMissing` is `true`; the CLI does not invent a timestamp. Official domains receive a moderate tie-break boost, while dated results still dominate date ordering.
 

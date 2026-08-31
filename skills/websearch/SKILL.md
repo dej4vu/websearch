@@ -9,16 +9,19 @@ Use this skill when an agent needs current public web content, open-ended discov
 
 ## Invocation
 
-Prefer `npx` so users do not need a global installation. Use `-y` to avoid an interactive package-install prompt in non-interactive agent shells:
+If the `websearch` command is already installed, prefer it:
 
 ```sh
-npx -y @dej4vu/websearch-cli@latest fetch https://example.com --json
+websearch fetch https://example.com --json
 ```
 
-For reproducible automation, pin the CLI version instead of using `@latest`:
+Otherwise use `npx`. In sandboxed agent shells, unset inherited local proxy variables and explicitly use the official npm registry:
 
 ```sh
-npx -y @dej4vu/websearch-cli@0.3.0 fetch https://example.com --json
+env -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY \
+  -u http_proxy -u https_proxy -u all_proxy \
+  npx -y --registry=https://registry.npmjs.org/ \
+  @dej4vu/websearch-cli@0.3.0 fetch https://example.com --json
 ```
 
 If the user already installed it globally, the shorter form is equivalent:
@@ -41,6 +44,14 @@ For open-ended discovery, start with Bing CN:
 
 ```sh
 npx -y @dej4vu/websearch-cli@latest search "人工智能 最新进展" --count 10 --json
+```
+
+The npx fallback prefix is:
+
+```sh
+env -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY \
+  -u http_proxy -u https_proxy -u all_proxy \
+  npx -y --registry=https://registry.npmjs.org/ @dej4vu/websearch-cli@0.3.0
 ```
 
 For model releases, incidents, prices, product changes, or any query where stale pages are misleading, rely on default `auto` ordering or be explicit:
@@ -90,7 +101,7 @@ It enforces the Bing skill blacklist for domains including Zhihu, Xiaohongshu, W
 
 ## Guidance for user-facing instructions
 
-Show `npx -y @dej4vu/websearch-cli@latest ...` in onboarding docs. For CI, scheduled workflows, or skill configurations, show a pinned package version. Do not tell users to run `npm install -g` unless they explicitly want the `websearch` command on `PATH`.
+For user-facing onboarding, show the robust npx form that unsets inherited proxy variables and targets the official registry. For CI, scheduled workflows, or skill configurations, show a pinned package version. Do not tell users to run `npm install -g` unless they explicitly want the `websearch` command on `PATH`.
 
 ## Output contract
 
