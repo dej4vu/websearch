@@ -18,7 +18,7 @@ npx -y @dej4vu/websearch-cli@latest fetch https://example.com --json
 For reproducible automation, pin the CLI version instead of using `@latest`:
 
 ```sh
-npx -y @dej4vu/websearch-cli@0.2.0 fetch https://example.com --json
+npx -y @dej4vu/websearch-cli@0.3.0 fetch https://example.com --json
 ```
 
 If the user already installed it globally, the shorter form is equivalent:

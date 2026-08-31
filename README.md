@@ -13,7 +13,7 @@ npx -y @dej4vu/websearch-cli@latest fetch https://example.com --json
 For automation, pin the version:
 
 ```sh
-npx -y @dej4vu/websearch-cli@0.2.0 fetch https://example.com --json
+npx -y @dej4vu/websearch-cli@0.3.0 fetch https://example.com --json
 ```
 
 If you prefer a short global command, this is optional:
@@ -115,10 +115,69 @@ JSON search results mark matching entries as `fetchBlocked: true`. The generic `
 
 ## Agent skill
 
-`skills/websearch/SKILL.md` is the canonical skill and defaults to `npx`. Link it into Codex and Claude Code user skill directories with:
+`skills/websearch/SKILL.md` is the canonical skill. Use [skills](https://www.npmjs.com/package/skills) as the primary installation path. The skill manager requires Node `>=22.20`; the websearch CLI itself still supports Node `>=20`.
+
+### User-level install
+
+Install for Codex, Claude Code, and Hermes Agent:
 
 ```sh
-./scripts/install-skill.sh
+npx -y skills@latest add dej4vu/websearch --skill websearch --agent codex --agent claude-code --agent hermes-agent --global --yes
+```
+
+In `skills@1.5.23`, this creates the Codex canonical copy in `~/.agents/skills/`, then links Claude Code at `~/.claude/skills/` and Hermes at `~/.hermes/skills/`. Codex's nominal global path in the skills documentation is `~/.codex/skills/`, but the universal Codex installation path is used here.
+
+If Hermes uses a custom home, set `HERMES_HOME` before installation so its symlink is placed correctly.
+
+### Project-level install
+
+Install into the current project only:
+
+```sh
+npx -y skills@latest add dej4vu/websearch --skill websearch --agent codex --agent claude-code --agent hermes-agent --yes
+```
+
+In `skills@1.5.23`, project-level Codex uses `.agents/skills/`. Project-level symlink installs skip Hermes when the consumer project has no `.hermes/` directory. Create it first if you want the Hermes symlink:
+
+```sh
+mkdir -p .hermes
+npx -y skills@latest add dej4vu/websearch --skill websearch --agent codex --agent claude-code --agent hermes-agent --yes
+```
+
+Alternatively, use `--copy` to create real project directories for all agents:
+
+```sh
+npx -y skills@latest add dej4vu/websearch --skill websearch --agent codex --agent claude-code --agent hermes-agent --copy --yes
+```
+
+This repository ignores generated `.agents/`, `.claude/`, `.codex/`, and `.hermes/` directories so local installation artifacts are not accidentally committed.
+
+### Manage installed skills
+
+```sh
+npx -y skills@1.5.23 list
+npx -y skills@1.5.23 list --json
+npx -y skills@1.5.23 remove websearch --yes
+```
+
+### Local development install
+
+From this repository, install the local skill without requiring a GitHub tag:
+
+```sh
+npx -y skills@latest add . --skill websearch --agent codex --agent claude-code --agent hermes-agent --yes
+```
+
+For CI or reproducible automation, pin both the skill manager and source tag. The pinned source command becomes usable after the GitHub remote and `v0.3.0` tag are published:
+
+```sh
+npx -y skills@1.5.23 add 'dej4vu/websearch#v0.3.0@websearch' --skill websearch --agent codex --agent claude-code --agent hermes-agent --global --yes
+```
+
+Inspect the canonical skill without installing:
+
+```sh
+npx -y skills@1.5.23 add . --list
 ```
 
 ## Development
