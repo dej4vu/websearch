@@ -1,5 +1,7 @@
 # @dej4vu/websearch-cli
 
+[简体中文](README.zh-CN.md) | English
+
 Agent-oriented web tools for Codex, Claude Code, and other CLI-capable assistants. It currently provides Bing CN search, readable page fetching, and a blacklist-aware Bing result fetcher.
 
 ## Run with npx

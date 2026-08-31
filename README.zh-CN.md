@@ -1,5 +1,7 @@
 # @dej4vu/websearch-cli
 
+[English](README.md) | 简体中文
+
 面向 Codex、Claude Code 及其他 CLI 助手代理的网页工具。目前提供 Bing 中文搜索、网页正文抓取、带黑名单的 Bing 结果抓取。
 
 ## 使用 npx 运行
