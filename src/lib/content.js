@@ -1,6 +1,7 @@
 import { JSDOM } from "jsdom";
 import { Readability } from "@mozilla/readability";
 import TurndownService from "turndown";
+import { gfm } from "turndown-plugin-gfm";
 import { WebFetchError } from "../errors.js";
 
 const FALLBACK_SELECTORS = [
@@ -93,6 +94,9 @@ export function htmlToMarkdown(html, baseUrl) {
     headingStyle: "atx",
     codeBlockStyle: "fenced",
   });
+  // Enables GFM table conversion, matching the official fetch MCP server.
+  // Without it, Turndown flattens <table> content into plain paragraphs.
+  turndown.use(gfm);
 
   // Turndown's built-in fenced block rule requires `pre > code`, but GitHub
   // and several documentation sites render syntax-highlighted code as
