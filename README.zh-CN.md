@@ -137,7 +137,7 @@ JSON 搜索结果会把命中的条目标记为 `fetchBlocked: true`。通用 `f
 
 ## Agent Skill
 
-`skills/websearch/SKILL.md` 是规范 skill 文件。请使用 [skills](https://www.npmjs.com/package/skills) 作为主要安装方式。skill 管理器要求 Node `>=22.20`；websearch CLI 自身仍支持 Node `>=20`。
+`skills/websearch/SKILL.md` 是规范 skill 文件。请使用 [skills](https://www.npmjs.com/package/skills) 作为主要安装方式。skill 管理器与 websearch CLI 都要求 Node `>=22.20`。
 
 ### 用户级安装
 

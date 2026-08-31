@@ -139,7 +139,7 @@ JSON search results mark matching entries as `fetchBlocked: true`. The generic `
 
 ## Agent skill
 
-`skills/websearch/SKILL.md` is the canonical skill. Use [skills](https://www.npmjs.com/package/skills) as the primary installation path. The skill manager requires Node `>=22.20`; the websearch CLI itself still supports Node `>=20`.
+`skills/websearch/SKILL.md` is the canonical skill. Use [skills](https://www.npmjs.com/package/skills) as the primary installation path. Both the skill manager and websearch CLI require Node `>=22.20`.
 
 ### User-level install
 
