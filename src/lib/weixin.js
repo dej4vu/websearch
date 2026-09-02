@@ -276,7 +276,9 @@ export async function searchWeixin(query, options = {}) {
     }
 
     const ordered = sort === "date" ? sortWeixinByDate(unique) : unique;
-    const window = ordered.slice(0, offset + count);
+    // Resolve only the links that will be returned: every resolution is one
+    // extra request to Sogou's /link endpoint, which raises anti-crawler risk.
+    const window = ordered.slice(offset, offset + count);
     const resolved = await Promise.all(
       window.map(async (result) => {
         try {
@@ -293,7 +295,7 @@ export async function searchWeixin(query, options = {}) {
       }),
     );
 
-    const selected = resolved.slice(offset, offset + count).map((result, index) => ({
+    const selected = resolved.map((result, index) => ({
       id: result.id,
       rank: index + 1,
       title: result.title,

@@ -118,12 +118,11 @@ Sogou's time-filter UI parameters no longer work server-side, so `--freshness` v
 npx -y @dej4vu/websearch-cli@latest search "GLM 最新模型" --engine all --count 10 --json
 ```
 
-Relevance mode interleaves the two engines; `date` mode sorts all results by publish time. Cross-engine duplicates are removed, and each result carries an `engine` field (`bing-cn` or `weixin-sogou`). If one engine fails, the other engine's results are still returned with a top-level `warnings` entry. `--freshness` applies to the Bing engine only.
+Relevance mode interleaves the two engines; `date` mode sorts all results by publish time. Cross-engine duplicates are removed, and each result carries an `engine` field (`bing-cn` or `weixin-sogou`). If one engine fails, the other engine's results are still returned with a top-level `warnings` entry. `--freshness` applies to the Bing engine only. Each engine contributes up to 50 results per query window, so deep `--offset` pagination is bounded by that cap.
 
 ## Fetch
 
 `fetch` performs an HTTP GET, follows redirects, checks `robots.txt`, extracts readable HTML, and converts it to Markdown. Non-HTML content is emitted as response text.
-
 
 ```sh
 npx -y @dej4vu/websearch-cli@latest fetch https://example.com

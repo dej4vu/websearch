@@ -212,6 +212,8 @@ export function weixinArticleToMarkdown(html, baseUrl) {
       : "",
   ].filter(Boolean).join("\n\n");
 
+  if (!header && !body) return null;
+
   return {
     markdown: [header, body].filter(Boolean).join("\n\n"),
     meta,
