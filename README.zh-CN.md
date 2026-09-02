@@ -263,6 +263,12 @@ npm run test:sites -- --output /tmp/websearch-site-report.json
 
 矩阵检查 HTTP 状态、提取成功率、预期文本和最小内容长度。它刻意**不**绕过 `robots.txt`，被 robots 拦截的 URL 会单独分类而非计为成功抓取。网络结果会随时间变化，因此该命令不属于默认离线测试套件。
 
+### Issue 驱动开发
+
+- 非琐碎工作先建 [GitHub issue](https://github.com/dej4vu/websearch/issues)，写清背景、约束和验收标准；新建前先搜索是否已有重复 issue。
+- 开发在 `codex/*` 分支进行；PR 通过 `Closes #N` 关联 issue，合并后自动关闭。
+- 发版用 checklist issue 跟踪（合并 → 升版本 → 打 tag → OIDC 发布）。
+
 ## 开源协议
 
 MIT

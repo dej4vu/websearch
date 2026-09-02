@@ -264,6 +264,12 @@ node ./bin/websearch.js --help
 - parity tests mapped from the 20 tests in the official [`mcp-server-fetch`](https://github.com/modelcontextprotocol/servers/tree/main/src/fetch) implementation.
 - Bing search URL/freshness construction, date parsing, intent ordering, multi-page aggregation, redirect unwrapping, canonical de-duplication, and blacklist tests.
 
+### Issue-driven workflow
+
+- Non-trivial work starts with a [GitHub issue](https://github.com/dej4vu/websearch/issues) that captures background, constraints, and acceptance criteria. Search existing issues before opening a new one.
+- Development happens on `codex/*` branches; PRs reference issues with `Closes #N` so they close automatically on merge.
+- Releases are tracked in a checklist issue (merge → version bump → tag → OIDC publish).
+
 ### Known-site matrix
 
 There is also a network test matrix with 20 well-known Chinese sites and 20 international sites:
