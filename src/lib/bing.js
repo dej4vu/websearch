@@ -41,7 +41,7 @@ const OFFICIAL_DOMAIN_SCORES = [
   ["developer.mozilla.org", 460],
 ];
 
-const RECENCY_INTENT = /最新|最近|新模型|发布|上线|更新|latest|release|new\b|news\b/i;
+export const RECENCY_INTENT = /最新|最近|新模型|发布|上线|更新|latest|release|new\b|news\b/i;
 
 export function normalizeFreshness(freshness, query, sort = "auto") {
   if (freshness && !(freshness in FRESHNESS_FILTERS)) {

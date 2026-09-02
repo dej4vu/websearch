@@ -58,7 +58,7 @@ Plain output shows ranked results with title, URL, site, snippet, and extracted 
 
 | Option | Description |
 |---|---|
-| `--engine <name>` | Search engine: `bing` or `weixin`. |
+| `--engine <name>` | Search engine: `bing`, `weixin`, or `all` (both merged). |
 | `--count <n>` | Maximum results (default `10`, max `50`). |
 | `--offset <n>` | Zero-based pagination offset. |
 | `--sort <mode>` | `auto`, `relevance`, or `date`. |
@@ -109,6 +109,16 @@ The engine queries `https://weixin.sogou.com/weixin?type=2`, resolves each Sogou
 Sogou's time-filter UI parameters no longer work server-side, so `--freshness` values other than `any` are rejected for this engine. If Sogou returns an anti-crawler verification page, the CLI exits with a clear error; retry later or route the request through `--proxy-url`.
 
 > WeChat article URLs returned by this engine are **time-limited signed links**. Fetch them promptly after searching; they expire after a while. This is a Sogou/WeChat platform behavior, not a CLI defect.
+
+### Aggregate both engines
+
+`--engine all` runs Bing CN and Sogou WeChat search in parallel and merges the results:
+
+```sh
+npx -y @dej4vu/websearch-cli@latest search "GLM 最新模型" --engine all --count 10 --json
+```
+
+Relevance mode interleaves the two engines; `date` mode sorts all results by publish time. Cross-engine duplicates are removed, and each result carries an `engine` field (`bing-cn` or `weixin-sogou`). If one engine fails, the other engine's results are still returned with a top-level `warnings` entry. `--freshness` applies to the Bing engine only.
 
 ## Fetch
 
