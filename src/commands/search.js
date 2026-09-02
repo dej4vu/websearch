@@ -1,4 +1,5 @@
 import { searchBing, BROWSER_USER_AGENT } from "../lib/bing.js";
+import { searchWeixin } from "../lib/weixin.js";
 import { isUrlBlacklisted } from "../lib/blacklist.js";
 import { WebSearchError } from "../errors.js";
 
@@ -39,12 +40,17 @@ function renderPlain(response) {
 
   for (const result of response.results) {
     const number = result.rank;
-    const blacklisted = isUrlBlacklisted(result.url) ? " [bing-fetch blacklist]" : "";
+    const blacklisted = response.engine === "weixin-sogou"
+      ? ""
+      : (isUrlBlacklisted(result.url) ? " [bing-fetch blacklist]" : "");
     lines.push(
       `${number}. ${result.title}${blacklisted}`,
       `   URL: ${result.url}`,
       `   Site: ${result.displayUrl}`,
     );
+    if (result.account) {
+      lines.push(`   Account: ${result.account}`);
+    }
     if (result.snippet) {
       lines.push(`   ${result.snippet.replaceAll(/\s+/g, " ")}`);
     }
@@ -56,6 +62,9 @@ function renderPlain(response) {
 
   if (response.totalResults !== null) {
     lines.push(`Total reported by Bing: ${response.totalResults}`);
+  }
+  if (response.notice) {
+    lines.push(`Note: ${response.notice}`);
   }
   return lines.join("\n");
 }
@@ -86,17 +95,22 @@ function renderJson(response) {
       publishedAtText: result.publishedAtText,
       publishedAtSource: result.publishedAtSource,
       dateMissing: result.dateMissing,
-      fetchBlocked: isUrlBlacklisted(result.url),
+      fetchBlocked: response.engine === "weixin-sogou" ? false : isUrlBlacklisted(result.url),
+      account: result.account,
+      coverImage: result.coverImage,
+      temporaryUrl: result.temporaryUrl,
+      sogouLink: result.sogouLink,
     })),
+    notice: response.notice,
   }, null, 2);
 }
 
 export function registerSearchCommand(program) {
   return program
     .command("search")
-    .description("Search the web. Bing CN is the first engine.")
+    .description("Search the web with Bing CN, or WeChat articles via Sogou.")
     .argument("<query...>", "Search keywords.")
-    .option("--engine <name>", "Search engine (currently: bing).", "bing")
+    .option("--engine <name>", "Search engine: bing or weixin (WeChat official-account articles).", "bing")
     .option("--count <results>", "Maximum results to return (1-50).", "10")
     .option("--offset <results>", "Zero-based result offset.", "0")
     .option("--sort <mode>", "auto, relevance, or date.", "auto")
@@ -117,10 +131,12 @@ export function registerSearchCommand(program) {
       const query = queryParts.join(" ").trim();
 
       try {
-        if (options.engine !== "bing") {
-          throw new WebSearchError(`Unsupported search engine: ${options.engine}`);
+        if (options.engine !== "bing" && options.engine !== "weixin") {
+          throw new WebSearchError("--engine must be one of: bing, weixin");
         }
-        const response = await searchBing(query, parsedOptions);
+        const response = options.engine === "weixin"
+          ? await searchWeixin(query, parsedOptions)
+          : await searchBing(query, parsedOptions);
         const output = parsedOptions.json ? renderJson(response) : renderPlain(response);
         console.log(output);
       } catch (error) {

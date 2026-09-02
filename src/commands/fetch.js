@@ -1,6 +1,12 @@
 import { request, createDispatcher } from "../lib/http.js";
 import { checkMayAutonomouslyFetchUrl } from "../lib/robots.js";
-import { htmlToMarkdown, isHtml } from "../lib/content.js";
+import {
+  htmlToMarkdown,
+  isHtml,
+  isWeixinArticleUrl,
+  weixinArticleToMarkdown,
+} from "../lib/content.js";
+import { BROWSER_USER_AGENT } from "../lib/bing.js";
 import { WebFetchError } from "../errors.js";
 
 const DEFAULT_USER_AGENT =
@@ -25,7 +31,8 @@ function parseStartIndex(value) {
 }
 
 export async function fetchFromWeb(url, options) {
-  const userAgent = options.userAgent ?? DEFAULT_USER_AGENT;
+  const weixinArticle = isWeixinArticleUrl(url);
+  const userAgent = options.userAgent ?? (weixinArticle ? BROWSER_USER_AGENT : DEFAULT_USER_AGENT);
   const proxyUrl = options.proxyUrl;
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const max_length = options.maxLength ?? DEFAULT_MAX_LENGTH;
@@ -53,7 +60,10 @@ export async function fetchFromWeb(url, options) {
   };
 
   try {
-    if (!options.ignoreRobotsTxt) {
+    // mp.weixin.qq.com's robots.txt disallows every path, including articles
+    // explicitly requested by the user. Treat WeChat article fetches like a
+    // user-directed visit and skip the autonomous-crawler robots check.
+    if (!options.ignoreRobotsTxt && !weixinArticle) {
       await checkMayAutonomouslyFetchUrl(url, requestContext);
     }
 
@@ -65,7 +75,20 @@ export async function fetchFromWeb(url, options) {
     const pageRaw = await response.text();
     const contentType = response.headers.get("content-type") ?? "";
     const convert = isHtml(pageRaw, contentType) && !raw;
-    const content = convert ? htmlToMarkdown(pageRaw, url) : pageRaw;
+    let articleMeta;
+    let content;
+    if (convert) {
+      if (weixinArticle) {
+        const weixin = weixinArticleToMarkdown(pageRaw, url);
+        if (weixin) {
+          content = weixin.markdown;
+          articleMeta = weixin.meta;
+        }
+      }
+      content ??= htmlToMarkdown(pageRaw, url);
+    } else {
+      content = pageRaw;
+    }
     const prefix = convert
       ? ""
       : `Content type ${contentType || "unknown"} cannot be simplified to markdown, but here is the raw content:\n`;
@@ -106,6 +129,7 @@ export async function fetchFromWeb(url, options) {
       nextStartIndex,
       truncated: nextStartIndex !== null,
       prefix,
+      articleMeta,
       content: output,
     };
   } finally {
@@ -130,6 +154,7 @@ function renderJson(result) {
     maxLength: result.maxLength,
     nextStartIndex: result.nextStartIndex,
     truncated: result.truncated,
+    articleMeta: result.articleMeta,
     content: result.content,
   }, null, 2);
 }
