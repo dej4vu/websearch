@@ -90,7 +90,7 @@ It enforces the Bing skill blacklist for domains including Zhihu, Xiaohongshu, W
 
 ## Useful options
 
-- `--max-length <n>`: limit output; default 5000 and maximum 1,000,000 characters.
+- `--max-length <n>`: limit output; default 10000 and maximum 1,000,000 characters.
 - `--start-index <n>`: continue a previous chunk.
 - `--raw`: return raw response text.
 - `--json`: emit structured output for reliable agent parsing.

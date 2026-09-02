@@ -12,7 +12,7 @@ export function registerBingFetchCommand(program) {
     .command("bing-fetch")
     .description("Fetch a search result using the bing-search-cn blacklist.")
     .argument("<url>", "HTTP or HTTPS URL to fetch.")
-    .option("--max-length <characters>", "Maximum characters to return.", "5000")
+    .option("--max-length <characters>", "Maximum characters to return.", "10000")
     .option("--start-index <characters>", "Return output beginning at this index.", "0")
     .option("--raw", "Return raw response text without markdown extraction.", false)
     .option("--user-agent <user-agent>", "Custom User-Agent for requests.")

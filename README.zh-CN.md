@@ -105,17 +105,17 @@ npx -y @dej4vu/websearch-cli@latest fetch https://example.com
 大页面分块读取：
 
 ```sh
-npx -y @dej4vu/websearch-cli@latest fetch https://example.com --max-length 5000 --json
+npx -y @dej4vu/websearch-cli@latest fetch https://example.com --max-length 10000 --json
 
 # 使用 JSON 结果中的 nextStartIndex 继续。
-npx -y @dej4vu/websearch-cli@latest fetch https://example.com --start-index 5000 --json
+npx -y @dej4vu/websearch-cli@latest fetch https://example.com --start-index 10000 --json
 ```
 
 ### 选项
 
 | 选项 | 说明 |
 |---|---|
-| `--max-length <n>` | 返回最大字符数（默认 `5000`，最大 `1000000`）。 |
+| `--max-length <n>` | 返回最大字符数（默认 `10000`，最大 `1000000`）。 |
 | `--start-index <n>` | 从该字符偏移量开始返回。 |
 | `--raw` | 跳过 readability 提取和 Markdown 转换。 |
 | `--user-agent <ua>` | 自定义 User-Agent。 |

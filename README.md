@@ -107,17 +107,17 @@ npx -y @dej4vu/websearch-cli@latest fetch https://example.com
 Read a large page in chunks:
 
 ```sh
-npx -y @dej4vu/websearch-cli@latest fetch https://example.com --max-length 5000 --json
+npx -y @dej4vu/websearch-cli@latest fetch https://example.com --max-length 10000 --json
 
 # Use nextStartIndex from the JSON result.
-npx -y @dej4vu/websearch-cli@latest fetch https://example.com --start-index 5000 --json
+npx -y @dej4vu/websearch-cli@latest fetch https://example.com --start-index 10000 --json
 ```
 
 ### Options
 
 | Option | Description |
 |---|---|
-| `--max-length <n>` | Maximum characters to return (default `5000`, max `1000000`). |
+| `--max-length <n>` | Maximum characters to return (default `10000`, max `1000000`). |
 | `--start-index <n>` | Return content from this character index. |
 | `--raw` | Skip readability extraction and Markdown conversion. |
 | `--user-agent <ua>` | Custom User-Agent. |

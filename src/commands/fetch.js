@@ -5,7 +5,7 @@ import { WebFetchError } from "../errors.js";
 
 const DEFAULT_USER_AGENT =
   "WebSearchCLI/0.1 (+https://github.com/dej4vu/websearch)";
-const DEFAULT_MAX_LENGTH = 5000;
+const DEFAULT_MAX_LENGTH = 10000;
 const DEFAULT_TIMEOUT_MS = 30000;
 
 function parsePositiveInteger(value, optionName, { maximum = Number.MAX_SAFE_INTEGER } = {}) {
@@ -139,7 +139,7 @@ export function registerFetchCommand(program) {
     .command("fetch")
     .description("Fetch a URL and extract readable HTML as markdown.")
     .argument("<url>", "HTTP or HTTPS URL to fetch.")
-    .option("--max-length <characters>", "Maximum characters to return.", "5000")
+    .option("--max-length <characters>", "Maximum characters to return.", "10000")
     .option("--start-index <characters>", "Return output beginning at this index.", "0")
     .option("--raw", "Return raw response text without markdown extraction.", false)
     .option("--user-agent <user-agent>", "Custom User-Agent for requests.")
