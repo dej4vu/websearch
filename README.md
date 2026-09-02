@@ -15,11 +15,21 @@ env -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY \
   @dej4vu/websearch-cli@latest fetch https://example.com --json
 ```
 
-For automation, pin the version:
+For automation, replace `latest` with a released version. Check the latest published version with:
 
 ```sh
-npx -y @dej4vu/websearch-cli@0.3.1 fetch https://example.com --json
+npm view @dej4vu/websearch-cli version
 ```
+
+```sh
+npx -y @dej4vu/websearch-cli@<version> fetch https://example.com --json
+```
+
+> Tip: keep `@latest` in npx commands so you always resolve the newest release. If npx still runs an old cached copy, remove the npx cache and retry:
+>
+> ```sh
+> rm -rf ~/.npm/_npx
+> ```
 
 If you prefer a short global command, this is optional:
 
@@ -79,7 +89,7 @@ Run `npx` without inherited proxy variables and use the official registry:
 env -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY \
   -u http_proxy -u https_proxy -u all_proxy \
   npx -y --registry=https://registry.npmjs.org/ \
-  @dej4vu/websearch-cli@0.3.1 search "GLM 最新模型" --json
+  @dej4vu/websearch-cli@latest search "GLM 最新模型" --json
 ```
 
 The package is available on both npmjs.com and npmmirror.com; the error is caused by the blocked proxy connection, not a missing release.
@@ -192,10 +202,10 @@ From this repository, install the local skill without requiring a GitHub tag:
 npx -y skills@latest add . --skill websearch --agent codex --agent claude-code --agent hermes-agent --yes
 ```
 
-For CI or reproducible automation, pin both the skill manager and source tag. The pinned source command becomes usable after the GitHub remote and `v0.3.1` tag are published:
+For CI or reproducible automation, pin both the skill manager version and a source release tag. Replace `<release>` with a published tag from the [releases page](https://github.com/dej4vu/websearch/releases):
 
 ```sh
-npx -y skills@1.5.23 add 'dej4vu/websearch#v0.3.1@websearch' --skill websearch --agent codex --agent claude-code --agent hermes-agent --global --yes
+npx -y skills@1.5.23 add 'dej4vu/websearch#v<release>@websearch' --skill websearch --agent codex --agent claude-code --agent hermes-agent --global --yes
 ```
 
 Inspect the canonical skill without installing:

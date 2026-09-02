@@ -15,11 +15,21 @@ env -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY \
   @dej4vu/websearch-cli@latest fetch https://example.com --json
 ```
 
-自动化场景建议固定版本：
+自动化场景可将 `latest` 替换为已发布版本。查询最新发布版本：
 
 ```sh
-npx -y @dej4vu/websearch-cli@0.3.1 fetch https://example.com --json
+npm view @dej4vu/websearch-cli version
 ```
+
+```sh
+npx -y @dej4vu/websearch-cli@<version> fetch https://example.com --json
+```
+
+> 提示：npx 命令请保留 `@latest`，始终解析最新发布版本。如果 npx 仍运行旧的缓存副本，先清空 npx 缓存再重试：
+>
+> ```sh
+> rm -rf ~/.npm/_npx
+> ```
 
 如果想使用全局短命令（可选）：
 
@@ -77,7 +87,7 @@ EPERM ... connect 127.0.0.1:7890
 env -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY \
   -u http_proxy -u https_proxy -u all_proxy \
   npx -y --registry=https://registry.npmjs.org/ \
-  @dej4vu/websearch-cli@0.3.1 search "GLM 最新模型" --json
+  @dej4vu/websearch-cli@latest search "GLM 最新模型" --json
 ```
 
 包同时发布在 npmjs.com 与 npmmirror.com；此报错通常是代理连接被拦截，而不是版本缺失。
@@ -182,10 +192,10 @@ npx -y skills@1.5.23 remove websearch --yes
 npx -y skills@latest add . --skill websearch --agent codex --agent claude-code --agent hermes-agent --yes
 ```
 
-CI 或可复现自动化建议同时固定管理器版本和源码 tag：
+CI 或可复现自动化建议同时固定管理器版本和源码 tag。将 `<release>` 替换为 [Releases 页面](https://github.com/dej4vu/websearch/releases) 中已发布的 tag：
 
 ```sh
-npx -y skills@1.5.23 add 'dej4vu/websearch#v0.3.1@websearch' --skill websearch --agent codex --agent claude-code --agent hermes-agent --global --yes
+npx -y skills@1.5.23 add 'dej4vu/websearch#v<release>@websearch' --skill websearch --agent codex --agent claude-code --agent hermes-agent --global --yes
 ```
 
 不安装即可查看规范 skill：
