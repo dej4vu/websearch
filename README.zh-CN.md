@@ -116,7 +116,7 @@ npx -y @dej4vu/websearch-cli@latest search "Temporal 工作流" --engine weixin 
 npx -y @dej4vu/websearch-cli@latest search "GLM 最新模型" --engine all --count 10 --json
 ```
 
-相关性模式按两个引擎轮询交错；`date` 模式按发布时间全局排序。跨引擎重复结果会去重，每条结果带 `engine` 字段（`bing-cn` 或 `weixin-sogou`）。单个引擎失败时仍返回另一引擎结果，并在顶层 `warnings` 中说明；`--freshness` 只作用于 Bing 引擎。
+相关性模式按两个引擎轮询交错；`date` 模式按发布时间全局排序。跨引擎重复结果会去重，每条结果带 `engine` 字段（`bing-cn` 或 `weixin-sogou`）。单个引擎失败时仍返回另一引擎结果，并在顶层 `warnings` 中说明；`--freshness` 只作用于 Bing 引擎。每个引擎单次查询窗口最多贡献 50 条结果，深翻页 `--offset` 受此上限约束。
 
 ## Fetch 抓取
 

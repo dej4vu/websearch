@@ -98,6 +98,9 @@ export function aggregateResults(engineResponses, options = {}) {
 export async function searchAll(query, options = {}) {
   const count = options.count ?? 10;
   const offset = options.offset ?? 0;
+  if (options.freshness && !["any", "day", "week", "month"].includes(options.freshness)) {
+    throw new WebSearchError("--freshness must be one of: any, day, week, month");
+  }
   const windowCount = Math.min(50, Math.max(1, offset + count));
 
   const settled = await Promise.allSettled([
