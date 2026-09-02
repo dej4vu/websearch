@@ -2,7 +2,7 @@
 
 [English](README.md) | 简体中文
 
-面向 Codex、Claude Code 及其他 CLI 助手代理的网页工具。目前提供 Bing 中文搜索、网页正文抓取、带黑名单的 Bing 结果抓取。
+面向 Codex、Claude Code 及其他 CLI 助手代理的网页工具。目前提供 Bing 中文搜索、微信公众号文章搜索（经搜狗微信）、网页正文抓取、带黑名单的 Bing 结果抓取。
 
 ## 使用 npx 运行
 
@@ -56,7 +56,7 @@ npx -y @dej4vu/websearch-cli@latest search "人工智能 最新进展" --count 2
 
 | 选项 | 说明 |
 |---|---|
-| `--engine <name>` | 搜索引擎，目前仅支持 `bing`。 |
+| `--engine <name>` | 搜索引擎：`bing` 或 `weixin`。 |
 | `--count <n>` | 返回结果条数（默认 `10`，最大 `50`）。 |
 | `--offset <n>` | 从该偏移量开始分页。 |
 | `--sort <mode>` | `auto`、`relevance` 或 `date`。 |
@@ -94,6 +94,20 @@ env -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY \
 
 日期尽量从 Bing 的 `.news_dt`、摘要、标题和 URL 解析；无法得到可信日期时 `dateMissing` 为 `true`，不伪造时间戳。官方域名获得适度加权用于同分场景；有明确日期的结果在日期排序中仍占主导。
 
+## 微信公众号文章搜索
+
+通过搜狗微信搜索公众号文章：
+
+```sh
+npx -y @dej4vu/websearch-cli@latest search "Temporal 工作流" --engine weixin --count 10 --json
+```
+
+引擎请求 `https://weixin.sogou.com/weixin?type=2`，并把每条搜狗 `/link?url=...` 跳转解析成真实的 `mp.weixin.qq.com` 文章 URL，返回公众号名称、精确发布时间、摘要和封面图。`--sort date` 按发布时间排序；`--offset` 支持最多 10 页翻页。
+
+搜狗的时间筛选参数目前已在服务端失效，因此该引擎不支持除 `any` 以外的 `--freshness` 值。如果搜狗返回反爬验证页，CLI 会报出明确错误；可稍后重试，或通过 `--proxy-url` 走代理。
+
+> 该引擎返回的微信文章 URL 是**限时签名链接**，请在搜索后尽快抓取；过期是搜狗/微信平台行为，不是 CLI 缺陷。
+
 ## Fetch 抓取
 
 `fetch` 执行 HTTP GET、跟随重定向、检查 `robots.txt`、提取正文 HTML 并转换为 Markdown。非 HTML 内容按原始响应文本返回。
@@ -125,6 +139,16 @@ npx -y @dej4vu/websearch-cli@latest fetch https://example.com --start-index 1000
 | `--json` | 输出结构化元数据与内容。 |
 
 默认遵守 `robots.txt`。除非用户明确要求且用途合规，否则不要使用 `--ignore-robots-txt`。
+
+### 微信文章
+
+`fetch` 针对 `mp.weixin.qq.com` 文章做了专用提取：读取通用 readability 会跳过的隐藏 `#js_content` 正文，把懒加载的 `data-src` 图片还原为真实图片 URL，并在 Markdown 顶部附加文章标题、公众号名称和发布时间。JSON 输出还会包含 `articleMeta` 对象。
+
+```sh
+npx -y @dej4vu/websearch-cli@latest fetch "https://mp.weixin.qq.com/s?src=11&timestamp=...&signature=...&new=1" --json
+```
+
+`mp.weixin.qq.com` 的 `robots.txt` 对全站 Disallow，包括用户明确提供的文章链接。对该域名，`fetch` 按用户主动访问处理，跳过自主爬虫 robots 检查；签名链接本身的过期与访问控制仍由微信侧强制。带 `timestamp`/`signature` 参数的签名 URL 会过期，搜狗搜索后需尽快抓取；永久链接 `mp.weixin.qq.com/s/<id>` 不会过期。
 
 > 安全提示：该命令可访问网络可达地址，包括内网地址（取决于宿主机策略）。请为不可信代理配置审批策略。
 

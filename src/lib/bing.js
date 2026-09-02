@@ -1,6 +1,7 @@
 import * as cheerio from "cheerio";
 import { randomUUID } from "node:crypto";
 import { request, createDispatcher } from "./http.js";
+import { mergeCookies } from "./cookies.js";
 import { WebSearchError } from "../errors.js";
 
 export const BING_SEARCH_URL = "https://cn.bing.com/search";
@@ -111,18 +112,6 @@ async function requestPage(url, { proxyUrl, timeoutMs, cookies } = {}) {
   } finally {
     await dispatcher?.close?.();
   }
-}
-
-function mergeCookies(current = "", setCookieHeaders = []) {
-  const jar = new Map();
-  for (const text of [current, ...setCookieHeaders].filter(Boolean)) {
-    for (const pair of text.split(/;\s*/)) {
-      const index = pair.indexOf("=");
-      if (index <= 0) continue;
-      jar.set(pair.slice(0, index), pair.slice(index + 1));
-    }
-  }
-  return [...jar.entries()].map(([name, value]) => `${name}=${value}`).join("; ") || undefined;
 }
 
 function extractNextPageUrl(html) {

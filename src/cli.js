@@ -9,7 +9,7 @@ export async function run(argv) {
 
   program
     .name("websearch")
-    .description("Agent-oriented web tools for fetching pages and searching Bing CN.")
+    .description("Agent-oriented web tools: fetch pages, search Bing CN and WeChat articles via Sogou.")
     .version(packageJson.version, "--version", "Show the CLI version.")
     .helpOption("-h, --help", "Show help.")
 

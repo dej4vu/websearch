@@ -1,11 +1,11 @@
 ---
 name: websearch
-description: Search Bing CN and fetch live web pages through the npx-runnable websearch CLI, with readable markdown extraction, robots.txt handling, chunked pagination, raw mode, proxy support, and JSON output for Codex, Claude Code, and other CLI-capable agents.
+description: Search Bing CN and WeChat official-account articles, and fetch live web pages through the npx-runnable websearch CLI, with readable markdown extraction, WeChat article extraction, robots.txt handling, chunked pagination, raw mode, proxy support, and JSON output for Codex, Claude Code, and other CLI-capable agents.
 ---
 
 # Websearch CLI
 
-Use this skill when an agent needs current public web content, open-ended discovery, a direct URL preview, readable page text, or a raw response.
+Use this skill when an agent needs current public web content, open-ended discovery, WeChat official-account (公众号) articles, a direct URL preview, readable page text, or a raw response.
 
 ## Invocation
 
@@ -70,6 +70,21 @@ npx -y @dej4vu/websearch-cli@latest search "人工智能 最新进展" --count 2
 
 JSON results contain `rank`, `title`, `url`, `snippet`, `displayUrl`, `publishedAt`, `publishedAtText`, `publishedAtSource`, `dateMissing`, and `fetchBlocked`. Top-level metrics include `resultCount`, `pagesFetched`, `duplicatesRemoved`, `sort`, and `freshness`. Choose a non-blocked result and fetch it with the normal fetch workflow. `fetchBlocked` domains are marked, not deleted, by search; `bing-fetch` enforces the blacklist.
 
+## WeChat article search
+
+When the user asks for WeChat official-account (公众号) articles, use the `weixin` engine, which searches Sogou WeChat (`https://weixin.sogou.com/`) and resolves each result to the real `mp.weixin.qq.com` URL:
+
+```sh
+npx -y @dej4vu/websearch-cli@latest search "Temporal 工作流" --engine weixin --count 10 --json
+```
+
+Rules:
+
+- WeChat result URLs are **time-limited signed links**. Fetch chosen results immediately; do not save them for later turns.
+- Results include `account`, exact `publishedAt`, `snippet`, and `coverImage`. `--sort date` reorders by publish time.
+- `--freshness` other than `any` is rejected for this engine (Sogou's time filters no longer work server-side).
+- If Sogou triggers an anti-crawler page, the CLI fails with a clear error. Retry later or use `--proxy-url`; do not try to solve captchas.
+
 ## Fetch workflow
 
 1. Start with `--json` so you can inspect `truncated`, `contentLength`, and `nextStartIndex`.
@@ -77,6 +92,10 @@ JSON results contain `rank`, `title`, `url`, `snippet`, `displayUrl`, `published
 3. Prefer the default markdown mode for HTML. Use `--raw` only for JSON/XML/text APIs or when exact markup is required.
 4. Leave robots.txt enforcement enabled unless the user explicitly authorizes ignoring it with `--ignore-robots-txt`.
 5. For authentication-gated or subscription pages, do not bypass access controls; tell the user the page is unavailable.
+
+### WeChat article fetch
+
+`mp.weixin.qq.com` URLs get a dedicated extractor: hidden `#js_content` body, `data-src` image promotion, and title/account/publish-time metadata (`articleMeta` in JSON). The host's robots.txt disallows all paths, so explicit user-requested WeChat article fetches skip the autonomous-crawler robots check by design; signed URLs still expire at WeChat's side. Use the normal fetch workflow, including `--start-index` chunking.
 
 ### Bing fetch
 

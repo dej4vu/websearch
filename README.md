@@ -2,7 +2,7 @@
 
 [简体中文](README.zh-CN.md) | English
 
-Agent-oriented web tools for Codex, Claude Code, and other CLI-capable assistants. It currently provides Bing CN search, readable page fetching, and a blacklist-aware Bing result fetcher.
+Agent-oriented web tools for Codex, Claude Code, and other CLI-capable assistants. It currently provides Bing CN search, WeChat official-account article search (via Sogou), readable page fetching, and a blacklist-aware Bing result fetcher.
 
 ## Run with npx
 
@@ -58,7 +58,7 @@ Plain output shows ranked results with title, URL, site, snippet, and extracted 
 
 | Option | Description |
 |---|---|
-| `--engine <name>` | Search engine; currently `bing`. |
+| `--engine <name>` | Search engine: `bing` or `weixin`. |
 | `--count <n>` | Maximum results (default `10`, max `50`). |
 | `--offset <n>` | Zero-based pagination offset. |
 | `--sort <mode>` | `auto`, `relevance`, or `date`. |
@@ -96,9 +96,24 @@ The package is available on both npmjs.com and npmmirror.com; the error is cause
 
 Dates are parsed from Bing's `.news_dt`, snippet, title, and URL when possible. When no trustworthy date exists, `dateMissing` is `true`; the CLI does not invent a timestamp. Official domains receive a moderate tie-break boost, while dated results still dominate date ordering.
 
+## Search WeChat articles
+
+Search WeChat official-account (公众号) articles through Sogou WeChat Search:
+
+```sh
+npx -y @dej4vu/websearch-cli@latest search "Temporal 工作流" --engine weixin --count 10 --json
+```
+
+The engine queries `https://weixin.sogou.com/weixin?type=2`, resolves each Sogou `/link?url=...` redirect to the real `mp.weixin.qq.com` article URL, and reports the account name, exact publish timestamp, snippet, and cover image. `--sort date` reorders results by publish time; `--offset` paginates up to 10 pages.
+
+Sogou's time-filter UI parameters no longer work server-side, so `--freshness` values other than `any` are rejected for this engine. If Sogou returns an anti-crawler verification page, the CLI exits with a clear error; retry later or route the request through `--proxy-url`.
+
+> WeChat article URLs returned by this engine are **time-limited signed links**. Fetch them promptly after searching; they expire after a while. This is a Sogou/WeChat platform behavior, not a CLI defect.
+
 ## Fetch
 
 `fetch` performs an HTTP GET, follows redirects, checks `robots.txt`, extracts readable HTML, and converts it to Markdown. Non-HTML content is emitted as response text.
+
 
 ```sh
 npx -y @dej4vu/websearch-cli@latest fetch https://example.com
@@ -127,6 +142,16 @@ npx -y @dej4vu/websearch-cli@latest fetch https://example.com --start-index 1000
 | `--json` | Emit structured metadata plus content. |
 
 The command obeys `robots.txt` by default. Use `--ignore-robots-txt` only when the user explicitly asks for it and the use is otherwise permitted.
+
+### WeChat articles
+
+`fetch` has a dedicated extractor for `mp.weixin.qq.com` articles. It extracts the hidden `#js_content` body that generic readability algorithms skip, promotes lazy-loaded `data-src` images to real image URLs, and prefixes the Markdown with the article title, account name, and publish time. JSON output also includes an `articleMeta` object.
+
+```sh
+npx -y @dej4vu/websearch-cli@latest fetch "https://mp.weixin.qq.com/s?src=11&timestamp=...&signature=...&new=1" --json
+```
+
+`mp.weixin.qq.com`'s `robots.txt` disallows every path, including articles explicitly requested by the user. For that host, `fetch` treats the request as a user-directed visit and skips the autonomous-crawler robots check; the signed-link format itself still enforces WeChat's expiry and access rules. Signed URLs (with `timestamp`/`signature` parameters) expire — fetch them soon after a Sogou search. Permanent `mp.weixin.qq.com/s/<id>` links do not expire.
 
 > Security note: this command can request network-reachable addresses, including internal hosts if allowed by the host. Put it behind an approval policy for untrusted agents.
 
