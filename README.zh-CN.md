@@ -56,7 +56,7 @@ npx -y @dej4vu/websearch-cli@latest search "人工智能 最新进展" --count 2
 
 | 选项 | 说明 |
 |---|---|
-| `--engine <name>` | 搜索引擎：`bing` 或 `weixin`。 |
+| `--engine <name>` | 搜索引擎：`bing`、`weixin` 或 `all`（双引擎合并）。 |
 | `--count <n>` | 返回结果条数（默认 `10`，最大 `50`）。 |
 | `--offset <n>` | 从该偏移量开始分页。 |
 | `--sort <mode>` | `auto`、`relevance` 或 `date`。 |
@@ -107,6 +107,16 @@ npx -y @dej4vu/websearch-cli@latest search "Temporal 工作流" --engine weixin 
 搜狗的时间筛选参数目前已在服务端失效，因此该引擎不支持除 `any` 以外的 `--freshness` 值。如果搜狗返回反爬验证页，CLI 会报出明确错误；可稍后重试，或通过 `--proxy-url` 走代理。
 
 > 该引擎返回的微信文章 URL 是**限时签名链接**，请在搜索后尽快抓取；过期是搜狗/微信平台行为，不是 CLI 缺陷。
+
+### 双引擎聚合
+
+`--engine all` 并行查询 Bing 中文和搜狗微信，合并返回：
+
+```sh
+npx -y @dej4vu/websearch-cli@latest search "GLM 最新模型" --engine all --count 10 --json
+```
+
+相关性模式按两个引擎轮询交错；`date` 模式按发布时间全局排序。跨引擎重复结果会去重，每条结果带 `engine` 字段（`bing-cn` 或 `weixin-sogou`）。单个引擎失败时仍返回另一引擎结果，并在顶层 `warnings` 中说明；`--freshness` 只作用于 Bing 引擎。
 
 ## Fetch 抓取
 

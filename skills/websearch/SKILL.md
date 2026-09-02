@@ -40,11 +40,15 @@ The CLI currently provides `search`, `fetch`, and `bing-fetch`.
 
 ## Search workflow
 
-For open-ended discovery, start with Bing CN:
+For open-ended discovery, search both engines at once (Bing CN plus WeChat official-account articles) and merge the results:
 
 ```sh
-npx -y @dej4vu/websearch-cli@latest search "人工智能 最新进展" --count 10 --json
+npx -y @dej4vu/websearch-cli@latest search "人工智能 最新进展" --engine all --count 10 --json
 ```
+
+The aggregated response interleaves both engines in relevance mode, globally sorts by publish time in `date` mode, removes cross-engine duplicates, and tags every result with its source `engine` (`bing-cn` or `weixin-sogou`). If one engine fails (for example a Sogou anti-crawler page), the other engine's results are still returned with a top-level `warnings` entry; if both fail the command exits non-zero. `--freshness` applies to Bing only in `all` mode.
+
+Use `--engine bing` (default) for pure-English or documentation-only queries, and `--engine weixin` when the user explicitly wants WeChat articles.
 
 The npx fallback prefix is:
 
@@ -68,7 +72,7 @@ Paginate with `--offset`:
 npx -y @dej4vu/websearch-cli@latest search "人工智能 最新进展" --count 20 --offset 20 --json
 ```
 
-JSON results contain `rank`, `title`, `url`, `snippet`, `displayUrl`, `publishedAt`, `publishedAtText`, `publishedAtSource`, `dateMissing`, and `fetchBlocked`. Top-level metrics include `resultCount`, `pagesFetched`, `duplicatesRemoved`, `sort`, and `freshness`. Choose a non-blocked result and fetch it with the normal fetch workflow. `fetchBlocked` domains are marked, not deleted, by search; `bing-fetch` enforces the blacklist.
+JSON results contain `rank`, `title`, `url`, `snippet`, `displayUrl`, `publishedAt`, `publishedAtText`, `publishedAtSource`, `dateMissing`, `fetchBlocked`, and (in `all` mode) `engine`. Top-level metrics include `resultCount`, `pagesFetched`, `duplicatesRemoved`, `sort`, and `freshness`. Choose a non-blocked result and fetch it with the normal fetch workflow. `fetchBlocked` domains are marked, not deleted, by search; `bing-fetch` enforces the blacklist.
 
 ## WeChat article search
 
