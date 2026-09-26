@@ -1,6 +1,6 @@
 {
   "name": "@dej4vu/websearch-cli",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Agent web tools: fetch pages, search Bing CN and WeChat articles via Sogou.",
   "type": "module",
   "bin": {
@@ -39,8 +39,12 @@
     "weixin",
     "wechat",
     "sogou",
+    "juejin",
+    "yuque",
     "微信",
     "公众号",
+    "掘金",
+    "语雀",
     "search",
     "必应",
     "搜索",

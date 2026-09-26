@@ -9,6 +9,8 @@ const CONCURRENCY = 5;
 export const siteMatrix = [
   { group: "domestic", name: "BigModel Docs", url: "https://docs.bigmodel.cn/cn/coding-plan/tool/claude", minLength: 1500, expects: ["Claude Code", "ANTHROPIC_BASE_URL"] },
   { group: "domestic", name: "Juejin", url: "https://juejin.cn/post/7514981949480976396", minLength: 1500, expects: ["npm publish", "package.json"] },
+  { group: "domestic", name: "Juejin Tables", url: "https://juejin.cn/post/7680021879072981043", minLength: 5000, expects: ["SKILL.md", "Skill + npx CLI"] },
+  { group: "domestic", name: "Yuque", url: "https://www.yuque.com/hongliyuyulvliyuyulv-gmosd/ysggb3/ct102c", minLength: 3000, expects: ["三色标记法", "GPM并发调度模型"] },
   { group: "domestic", name: "CSDN", url: "https://blog.csdn.net/weixin_45801664/article/details/149000138", minLength: 500, expects: ["Open-WebSearch"] },
   { group: "domestic", name: "SegmentFault", url: "https://segmentfault.com/t/javascript", minLength: 300, expects: ["JavaScript"] },
   { group: "domestic", name: "Cnblogs", url: "https://www.cnblogs.com/cate/javascript/", minLength: 300, expects: ["博客园"] },

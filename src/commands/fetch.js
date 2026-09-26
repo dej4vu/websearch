@@ -1,9 +1,15 @@
 import { request, createDispatcher } from "../lib/http.js";
 import { checkMayAutonomouslyFetchUrl } from "../lib/robots.js";
 import {
+  buildYuqueMarkdownUrl,
+  cleanYuqueMarkdown,
+  extractYuqueArticleMeta,
+  isJuejinArticleUrl,
+  isYuqueArticleUrl,
   htmlToMarkdown,
   isHtml,
   isWeixinArticleUrl,
+  juejinArticleToMarkdown,
   weixinArticleToMarkdown,
 } from "../lib/content.js";
 import { BROWSER_USER_AGENT } from "../lib/bing.js";
@@ -32,6 +38,8 @@ function parseStartIndex(value) {
 
 export async function fetchFromWeb(url, options) {
   const weixinArticle = isWeixinArticleUrl(url);
+  const juejinArticle = isJuejinArticleUrl(url);
+  const yuqueArticle = isYuqueArticleUrl(url);
   const userAgent = options.userAgent ?? (weixinArticle ? BROWSER_USER_AGENT : DEFAULT_USER_AGENT);
   const proxyUrl = options.proxyUrl;
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
@@ -72,13 +80,39 @@ export async function fetchFromWeb(url, options) {
       throw new WebFetchError(`Failed to fetch ${url} - status code ${response.status}`);
     }
 
-    const pageRaw = await response.text();
     const contentType = response.headers.get("content-type") ?? "";
+    const originalPageRaw = await response.text();
+    let pageRaw = originalPageRaw;
     const convert = isHtml(pageRaw, contentType) && !raw;
     let articleMeta;
     let content;
     if (convert) {
-      if (weixinArticle) {
+      if (yuqueArticle) {
+        // Yuque's SSR document shell intentionally leaves body_asl empty. The
+        // same document is also published at /markdown, which is compact and
+        // avoids depending on browser-only hydration.
+        const markdownResponse = await request(
+          buildYuqueMarkdownUrl(response.url || url),
+          requestContext,
+        );
+        const markdownType = markdownResponse.headers.get("content-type") ?? "";
+        if (markdownResponse.status === 200 && markdownType.toLowerCase().includes("text/markdown")) {
+          articleMeta = extractYuqueArticleMeta(originalPageRaw);
+          pageRaw = await markdownResponse.text();
+          const header = articleMeta.title ? `# ${articleMeta.title}\n\n` : "";
+          content = `${header}${cleanYuqueMarkdown(pageRaw)}`;
+        }
+      }
+
+      if (content === undefined && juejinArticle) {
+        const juejin = juejinArticleToMarkdown(pageRaw, response.url || url);
+        if (juejin) {
+          content = juejin.markdown;
+          articleMeta = juejin.meta;
+        }
+      }
+
+      if (content === undefined && weixinArticle) {
         const weixin = weixinArticleToMarkdown(pageRaw, url);
         if (weixin) {
           content = weixin.markdown;

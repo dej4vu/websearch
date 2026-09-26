@@ -6,7 +6,13 @@
 
 ## 使用 npx 运行
 
-无需全局安装：
+默认无需全局安装，也无需代理：
+
+```sh
+npx -y @dej4vu/websearch-cli@latest fetch https://example.com --json
+```
+
+请先使用上面的普通形式。如果沙箱 shell 继承了不可用的本地代理，导致 `npx` 本身失败，再把清除继承代理变量作为备选方案：
 
 ```sh
 env -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY \
@@ -30,6 +36,15 @@ npx -y @dej4vu/websearch-cli@<version> fetch https://example.com --json
 > ```sh
 > rm -rf ~/.npm/_npx
 > ```
+
+如果包安装成功，但 `search` 或 `fetch` 目标请求遇到网络或反爬问题，可为该请求显式追加代理重试：
+
+```sh
+npx -y @dej4vu/websearch-cli@latest fetch https://example.com \
+  --proxy-url http://127.0.0.1:7890 --json
+```
+
+代理是目标请求的备选方案，不是默认要求。请把示例 URL 替换为你环境中可用的 HTTP/HTTPS 代理。
 
 如果想使用全局短命令（可选）：
 
@@ -81,7 +96,7 @@ npx -y @dej4vu/websearch-cli@latest search "GLM 最新模型" --count 15 --json
 EPERM ... connect 127.0.0.1:7890
 ```
 
-请去掉继承的代理变量，并显式使用官方 registry：
+针对这种 `npx` 安装阶段的问题，去掉继承的代理变量，并显式使用官方 registry：
 
 ```sh
 env -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY \
@@ -91,6 +106,8 @@ env -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY \
 ```
 
 包同时发布在 npmjs.com 与 npmmirror.com；此报错通常是代理连接被拦截，而不是版本缺失。
+
+清除变量只解决包安装阶段的代理继承问题，不会让 CLI 自身请求走代理；目标请求需要代理时，仍要显式使用 `--proxy-url`。
 
 日期尽量从 Bing 的 `.news_dt`、摘要、标题和 URL 解析；无法得到可信日期时 `dateMissing` 为 `true`，不伪造时间戳。官方域名获得适度加权用于同分场景；有明确日期的结果在日期排序中仍占主导。
 
@@ -152,13 +169,22 @@ npx -y @dej4vu/websearch-cli@latest fetch https://example.com --start-index 1000
 
 ### 微信文章
 
-`fetch` 针对 `mp.weixin.qq.com` 文章做了专用提取：读取通用 readability 会跳过的隐藏 `#js_content` 正文，把懒加载的 `data-src` 图片还原为真实图片 URL，并在 Markdown 顶部附加文章标题、公众号名称和发布时间。JSON 输出还会包含 `articleMeta` 对象。
+`fetch` 针对 `mp.weixin.qq.com` 文章做了专用提取：读取通用 readability 会跳过的隐藏 `#js_content` 正文，把懒加载的 `data-src` 图片还原为真实图片 URL，将微信代码块（每行一个 `<code>` 元素）保留为换行完整的围栏代码，清理作者的排版占位（纯 nbsp 空段、仅含图片的标题、装饰性行号），并在 Markdown 顶部附加文章标题、公众号名称和发布时间。JSON 输出还会包含 `articleMeta` 对象。已删除、违规屏蔽、仅粉丝可见和环境验证页会返回明确的错误提示，而不是输出拦截页文字。
 
 ```sh
 npx -y @dej4vu/websearch-cli@latest fetch "https://mp.weixin.qq.com/s?src=11&timestamp=...&signature=...&new=1" --json
 ```
 
 `mp.weixin.qq.com` 的 `robots.txt` 对全站 Disallow，包括用户明确提供的文章链接。对该域名，`fetch` 按用户主动访问处理，跳过自主爬虫 robots 检查；签名链接本身的过期与访问控制仍由微信侧强制。带 `timestamp`/`signature` 参数的签名 URL 会过期，搜狗搜索后需尽快抓取；永久链接 `mp.weixin.qq.com/s/<id>` 不会过期。
+
+### 掘金和语雀文章
+
+`fetch` 对常见中文文章/文档站也有专用处理。掘金文章（`juejin.cn/post/...`）直接读取 SSR 正文，保留真实表格和围栏代码，安全展开语法高亮片段中导致转换崩溃的空标记表格，还原 `link.juejin.cn` 跳转链接，并在正文顶部附加标题、作者和发布日期。公开语雀文档会获取同一文档的 Markdown 表示，保留文档元数据，去除代码块外仅用于编辑器着色的 `<font>` 包装，并在正文顶部附加文档标题。两个站点在 JSON 输出中都会提供 `articleMeta` 对象。
+
+```sh
+npx -y @dej4vu/websearch-cli@latest fetch "https://juejin.cn/post/..." --json
+npx -y @dej4vu/websearch-cli@latest fetch "https://www.yuque.com/<user>/<book>/<doc>" --json
+```
 
 > 安全提示：该命令可访问网络可达地址，包括内网地址（取决于宿主机策略）。请为不可信代理配置审批策略。
 
@@ -250,12 +276,13 @@ node ./bin/websearch.js --help
 
 - 基础提取、截断、robots、raw 模式与代理测试；
 - 文档站与 `pre > span` 高亮代码块场景的回归；
+- 微信、掘金和语雀文章提取回归；
 - 对齐官方 [`mcp-server-fetch`](https://github.com/modelcontextprotocol/servers/tree/main/src/fetch) 的 20 项测试；
 - Bing 搜索 URL/freshness 构造、日期解析、意图排序、多页聚合、跳转还原、canonical 去重与黑名单测试。
 
 ### 知名站点矩阵
 
-另有包含 20 个国内知名站点和 20 个国际站点的联网测试矩阵：
+另有包含 22 个国内知名站点和 20 个国际站点的联网测试矩阵：
 
 ```sh
 npm run test:sites -- --output /tmp/websearch-site-report.json

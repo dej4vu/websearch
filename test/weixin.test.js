@@ -163,6 +163,76 @@ test("weixin article extraction reads hidden js_content and promotes data-src im
   assert.equal(article.meta.publishedAtText, "2026-03-25 19:38");
 });
 
+// WeChat code snippets are one <pre> holding one <code> per line, next to a
+// decorative line-number list. Joining them must preserve the line breaks.
+const weixinCodeSnippetHtml = `<html><body><div id="js_content">
+  <p>项目结构如下：</p>
+  <section class="code-snippet__fix code-snippet__js"><ul class="code-snippet__line-index code-snippet__js"><li></li><li></li><li></li></ul><pre class="code-snippet__js" data-lang="text"><code><span leaf="">src/</span></code><code><span leaf="">&nbsp;&nbsp;├── main.ts</span></code><code><span leaf="">&nbsp;&nbsp;└── util.ts</span></code></pre></section>
+</div></body></html>`;
+
+test("weixin code snippets keep one line per code element", () => {
+  const { markdown } = weixinArticleToMarkdown(weixinCodeSnippetHtml, "https://mp.weixin.qq.com/s?x=1");
+  assert.ok(markdown.includes("```\nsrc/\n  ├── main.ts\n  └── util.ts\n```"));
+});
+
+const weixinMessyLayoutHtml = `<html><body><div id="js_content">
+  <p><span leaf="">正文开头。</span></p>
+  <section><span leaf="">&nbsp;</span></section>
+  <h2><span leaf=""><img src="" data-src="https://mmbiz.qpic.cn/cover.png?wx_fmt=jpeg"></span></h2>
+  <h2><span leaf="">真标题</span></h2>
+  <ul class="list-paddingleft-1"><li><p>条目一</p></li><li><p>条目二</p></li></ul>
+</div></body></html>`;
+
+test("weixin extraction drops blank spacing blocks and unwraps image-only headings", () => {
+  const { markdown } = weixinArticleToMarkdown(weixinMessyLayoutHtml, "https://mp.weixin.qq.com/s?x=1");
+  // The nbsp-only section must not leave a whitespace-only line.
+  assert.doesNotMatch(markdown, /^[ \u00a0]+$/m);
+  // The cover image survives as an image, not as a `## ![](...)` heading.
+  assert.ok(markdown.includes("![](https://mmbiz.qpic.cn/cover.png?wx_fmt=jpeg)"));
+  assert.doesNotMatch(markdown, /^#+ *!\[/m);
+  assert.match(markdown, /^## 真标题$/m);
+  // Paragraph-wrapped list items stay a tight list.
+  assert.ok(markdown.includes("*   条目一\n*   条目二"));
+});
+
+test("weixin extraction rejects deleted and verification pages with clear errors", () => {
+  const deleted = "<html><body><div class='weui-msg__desc'>该内容已被发布者删除</div></body></html>";
+  assert.throws(
+    () => weixinArticleToMarkdown(deleted, "https://mp.weixin.qq.com/s?x=1"),
+    /deleted by its author/,
+  );
+
+  const verify = "<html><body>当前环境异常，完成验证后即可继续访问</body></html>";
+  assert.throws(
+    () => weixinArticleToMarkdown(verify, "https://mp.weixin.qq.com/s?x=1"),
+    /environment-verification/,
+  );
+
+  const broken = "<html><body><div>系统出错</div></body></html>";
+  assert.throws(
+    () => weixinArticleToMarkdown(broken, "https://mp.weixin.qq.com/s?x=1"),
+    /invalid or expired/,
+  );
+});
+
+test("weixin extraction still parses articles that merely quote blocked-page phrases", () => {
+  const html = `<html><body><div id="js_content">
+    <p>删文后页面会提示：该内容已被发布者删除。</p>
+  </div></body></html>`;
+  const { markdown } = weixinArticleToMarkdown(html, "https://mp.weixin.qq.com/s?x=1");
+  assert.match(markdown, /该内容已被发布者删除。/);
+});
+
+test("weixin extraction survives style attributes that crash the jsdom CSS parser", () => {
+  const html = `<html><body><div id="js_content">
+    <p style="display: block;background: none;background-position-x: 10px;background-color: red;">
+      <span leaf="">崩溃样式下的正文。</span>
+    </p>
+  </div></body></html>`;
+  const { markdown } = weixinArticleToMarkdown(html, "https://mp.weixin.qq.com/s?x=1");
+  assert.match(markdown, /崩溃样式下的正文。/);
+});
+
 test("isWeixinArticleUrl matches only the mp.weixin.qq.com host", () => {
   assert.equal(isWeixinArticleUrl("https://mp.weixin.qq.com/s?src=11"), true);
   assert.equal(isWeixinArticleUrl("https://weixin.sogou.com/weixin?type=2"), false);

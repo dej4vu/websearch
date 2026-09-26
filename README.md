@@ -6,7 +6,13 @@ Agent-oriented web tools for Codex, Claude Code, and other CLI-capable assistant
 
 ## Run with npx
 
-No global installation is required:
+No global installation and no proxy are required by default:
+
+```sh
+npx -y @dej4vu/websearch-cli@latest fetch https://example.com --json
+```
+
+Use this plain form first. If the sandboxed shell inherits a broken local proxy and `npx` itself fails, clear the inherited proxy variables as a fallback:
 
 ```sh
 env -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY \
@@ -30,6 +36,15 @@ npx -y @dej4vu/websearch-cli@<version> fetch https://example.com --json
 > ```sh
 > rm -rf ~/.npm/_npx
 > ```
+
+If package installation succeeds but a `search` or `fetch` request has a network or anti-crawler problem, retry that request with an explicit proxy:
+
+```sh
+npx -y @dej4vu/websearch-cli@latest fetch https://example.com \
+  --proxy-url http://127.0.0.1:7890 --json
+```
+
+The proxy is a fallback for target requests, not a default requirement. Replace the URL with the HTTP or HTTPS proxy available in your environment.
 
 If you prefer a short global command, this is optional:
 
@@ -83,7 +98,7 @@ npx -y @dej4vu/websearch-cli@latest search "GLM 最新模型" --count 15 --json
 EPERM ... connect 127.0.0.1:7890
 ```
 
-Run `npx` without inherited proxy variables and use the official registry:
+For this `npx`-only failure, clear inherited proxy variables and use the official registry:
 
 ```sh
 env -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY \
@@ -93,6 +108,8 @@ env -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY \
 ```
 
 The package is available on both npmjs.com and npmmirror.com; the error is caused by the blocked proxy connection, not a missing release.
+
+Clearing variables fixes the package-install path. It does not enable a proxy for the CLI's own requests; use `--proxy-url` explicitly when a target request needs one.
 
 Dates are parsed from Bing's `.news_dt`, snippet, title, and URL when possible. When no trustworthy date exists, `dateMissing` is `true`; the CLI does not invent a timestamp. Official domains receive a moderate tie-break boost, while dated results still dominate date ordering.
 
@@ -154,13 +171,22 @@ The command obeys `robots.txt` by default. Use `--ignore-robots-txt` only when t
 
 ### WeChat articles
 
-`fetch` has a dedicated extractor for `mp.weixin.qq.com` articles. It extracts the hidden `#js_content` body that generic readability algorithms skip, promotes lazy-loaded `data-src` images to real image URLs, and prefixes the Markdown with the article title, account name, and publish time. JSON output also includes an `articleMeta` object.
+`fetch` has a dedicated extractor for `mp.weixin.qq.com` articles. It extracts the hidden `#js_content` body that generic readability algorithms skip, promotes lazy-loaded `data-src` images to real image URLs, preserves WeChat code snippets (one `<code>` element per line) as fenced code with intact line breaks, strips author spacing hacks (nbsp-only blocks, image-only headings, decorative line numbers), and prefixes the Markdown with the article title, account name, and publish time. JSON output also includes an `articleMeta` object. Deleted, policy-blocked, follower-only, and verification-interstitial pages are rejected with a clear error instead of returning the interstitial text.
 
 ```sh
 npx -y @dej4vu/websearch-cli@latest fetch "https://mp.weixin.qq.com/s?src=11&timestamp=...&signature=...&new=1" --json
 ```
 
 `mp.weixin.qq.com`'s `robots.txt` disallows every path, including articles explicitly requested by the user. For that host, `fetch` treats the request as a user-directed visit and skips the autonomous-crawler robots check; the signed-link format itself still enforces WeChat's expiry and access rules. Signed URLs (with `timestamp`/`signature` parameters) expire — fetch them soon after a Sogou search. Permanent `mp.weixin.qq.com/s/<id>` links do not expire.
+
+### Juejin and Yuque articles
+
+`fetch` also has dedicated handling for common Chinese documentation and article sites. Juejin posts (`juejin.cn/post/...`) use the SSR article body, keep real tables and fenced code, unwrap safe syntax-highlight snippets that contain empty marker tables, resolve `link.juejin.cn` redirects, and prefix the body with the title, author, and publish date. Public Yuque documents request the same document's Markdown representation, preserve that document's metadata, remove editor-only `<font>` color wrappers outside code fences, and prefix the body with the document title. Both sites expose an `articleMeta` object in JSON output.
+
+```sh
+npx -y @dej4vu/websearch-cli@latest fetch "https://juejin.cn/post/..." --json
+npx -y @dej4vu/websearch-cli@latest fetch "https://www.yuque.com/<user>/<book>/<doc>" --json
+```
 
 > Security note: this command can request network-reachable addresses, including internal hosts if allowed by the host. Put it behind an approval policy for untrusted agents.
 
@@ -260,6 +286,7 @@ node ./bin/websearch.js --help
 
 - basic extraction, truncation, robots, raw mode, and proxy tests;
 - regression tests for documentation sites and highlighted `pre > span` blocks;
+- regression tests for WeChat, Juejin, and Yuque article extraction;
 - parity tests mapped from the 20 tests in the official [`mcp-server-fetch`](https://github.com/modelcontextprotocol/servers/tree/main/src/fetch) implementation.
 - Bing search URL/freshness construction, date parsing, intent ordering, multi-page aggregation, redirect unwrapping, canonical de-duplication, and blacklist tests.
 
@@ -271,7 +298,7 @@ node ./bin/websearch.js --help
 
 ### Known-site matrix
 
-There is also a network test matrix with 20 well-known Chinese sites and 20 international sites:
+There is also a network test matrix with 22 well-known Chinese sites and 20 international sites:
 
 ```sh
 npm run test:sites -- --output /tmp/websearch-site-report.json

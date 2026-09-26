@@ -1,6 +1,6 @@
 ---
 name: websearch
-description: Search Bing CN and WeChat official-account articles, and fetch live web pages through the npx-runnable websearch CLI, with readable markdown extraction, WeChat article extraction, robots.txt handling, chunked pagination, raw mode, proxy support, and JSON output for Codex, Claude Code, and other CLI-capable agents.
+description: Search Bing CN and WeChat official-account articles, and fetch live web pages through the npx-runnable websearch CLI, with readable markdown extraction, dedicated WeChat/Juejin/Yuque article handling, robots.txt handling, chunked pagination, raw mode, proxy support, and JSON output for Codex, Claude Code, and other CLI-capable agents.
 ---
 
 # Websearch CLI
@@ -15,7 +15,13 @@ If the `websearch` command is already installed, prefer it:
 websearch fetch https://example.com --json
 ```
 
-Otherwise use `npx`. In sandboxed agent shells, unset inherited local proxy variables and explicitly use the official npm registry:
+Otherwise use `npx` directly; no proxy is needed by default:
+
+```sh
+npx -y @dej4vu/websearch-cli@latest fetch https://example.com --json
+```
+
+Only if `npx` itself fails because a sandboxed shell inherited a broken local proxy, clear the inherited variables and explicitly use the official npm registry:
 
 ```sh
 env -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY \
@@ -50,7 +56,7 @@ The aggregated response interleaves both engines in relevance mode, globally sor
 
 Use `--engine bing` (default) for pure-English or documentation-only queries, and `--engine weixin` when the user explicitly wants WeChat articles.
 
-The npx fallback prefix is:
+Use the following prefix only for the `npx` install failure described in Invocation:
 
 ```sh
 env -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY \
@@ -111,6 +117,10 @@ npx -y @dej4vu/websearch-cli@latest bing-fetch https://example.com/article --jso
 
 It enforces the Bing skill blacklist for domains including Zhihu, Xiaohongshu, Weibo, WeChat, Douyin/TikTok, Bilibili, and CSDN. The generic `fetch` command does not add this blacklist.
 
+### Juejin and Yuque article fetch
+
+`juejin.cn/post/...` and public `www.yuque.com/<user>/<book>/<doc>` URLs also have dedicated extractors. Prefer `fetch --json`, preserve `articleMeta`, and continue pagination with `nextStartIndex` when it is non-null.
+
 ## Useful options
 
 - `--max-length <n>`: limit output; default 10000 and maximum 1,000,000 characters.
@@ -124,7 +134,7 @@ It enforces the Bing skill blacklist for domains including Zhihu, Xiaohongshu, W
 
 ## Guidance for user-facing instructions
 
-For user-facing onboarding, show the robust npx form that unsets inherited proxy variables and targets the official registry. For CI, scheduled workflows, or skill configurations, show a pinned package version. Do not tell users to run `npm install -g` unless they explicitly want the `websearch` command on `PATH`.
+For user-facing onboarding, show the plain direct-connection npx form first. Show the proxy-unsetting npx form only when `npx` itself is blocked by inherited proxy variables. For target-request network or anti-crawler failures, retry with `--proxy-url`. For CI, scheduled workflows, or skill configurations, show a pinned package version. Do not tell users to run `npm install -g` unless they explicitly want the `websearch` command on `PATH`.
 
 ## Output contract
 
